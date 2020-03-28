@@ -1,6 +1,9 @@
 package ru.gnkoshelev.kontur.intern.redis.map;
 
-import org.junit.*;
+
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Test;
 import redis.clients.jedis.Jedis;
 
 import java.util.Collection;
@@ -8,7 +11,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-
 
 public class RedisMapTest {
 
@@ -55,6 +57,13 @@ public class RedisMapTest {
         hashMap.put("test3", "value3");
 
         return hashMap;
+    }
+
+    public <T> boolean equalsIgnoreOrder(Collection<T> first, Collection<T> second) {
+        for (T e : first)
+            if(!second.contains(e))
+                return false;
+        return true;
     }
 
     @After
@@ -183,7 +192,7 @@ public class RedisMapTest {
         Map<String, String> hashMap = prepareHashMap();
 
         map.putAll(hashMap);
-        Assert.assertArrayEquals(hashMap.values().toArray(), map.values().toArray());
+        Assert.assertTrue(equalsIgnoreOrder(hashMap.values(), map.values()));
     }
 
     @Test
@@ -207,7 +216,7 @@ public class RedisMapTest {
 
         Set<String> set = map.keySet();
         Assert.assertEquals(hashMap.size(), set.size());
-        Assert.assertArrayEquals(hashMap.keySet().toArray(), set.toArray());
+        Assert.assertTrue(equalsIgnoreOrder(hashMap.keySet(), map.keySet()));
 
         String el = hashMap.keySet().iterator().next();
         Assert.assertTrue(set.contains(el));
@@ -223,7 +232,7 @@ public class RedisMapTest {
 
         Collection<String> set = map.values();
         Assert.assertEquals(hashMap.size(), set.size());
-        Assert.assertArrayEquals(hashMap.values().toArray(), set.toArray());
+        Assert.assertTrue(equalsIgnoreOrder(hashMap.values(), map.values()));
 
         String el = hashMap.values().iterator().next();
         Assert.assertTrue(set.contains(el));
@@ -237,8 +246,7 @@ public class RedisMapTest {
 
         Set<Entry<String, String>> set = map.entrySet();
         Assert.assertEquals(hashMap.size(), set.size());
-        Assert.assertArrayEquals(hashMap.entrySet().toArray(), set.toArray());
-
+        Assert.assertTrue(equalsIgnoreOrder(hashMap.entrySet(), map.entrySet()));
         Entry<String, String> el = hashMap.entrySet().iterator().next();
         Assert.assertTrue(set.contains(el));
         set.remove(el);
