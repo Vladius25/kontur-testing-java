@@ -58,13 +58,13 @@ public class RedisMapTest {
     }
 
     @After
-    public void clearRedis(){
+    public void clearRedis() {
         Jedis jedis = new Jedis(HOST, PORT);
         jedis.flushAll();
     }
 
     @Test
-    public void initDifferentConstructors(){
+    public void initDifferentConstructors() {
         clearRedis();
         RedisMap map = new RedisMap(HOST, PORT);
         RedisMap map1 = new RedisMap(HOST, PORT, "test");
@@ -79,13 +79,13 @@ public class RedisMapTest {
     }
 
     @Test
-    public void connectToSpecificDB(){
+    public void connectToSpecificDB() {
         RedisMap map = new RedisMap(HOST, PORT, 2);
         Assert.assertEquals(2, map.getDB());
     }
 
     @Test
-    public void connectToSpecificHash(){
+    public void connectToSpecificHash() {
         Map<String, String> map = new RedisMap(HOST, PORT, "myhash");
 
         map.put("test", "secret");
@@ -94,7 +94,7 @@ public class RedisMapTest {
     }
 
     @Test
-    public void putKeyValue(){
+    public void putKeyValue() {
         Map<String, String> map = new RedisMap(HOST, PORT, "test", 0);
 
         map.put("save", "data");
@@ -104,7 +104,7 @@ public class RedisMapTest {
     }
 
     @Test
-    public void useOneKeyValueFromDifferentApps(){
+    public void useOneKeyValueFromDifferentApps() {
         Map<String, String> map1 = new RedisMap(HOST, PORT, "brotherhood");
         map1.put("test1", "value1");
         map1.put("test2", "value2");
@@ -116,16 +116,17 @@ public class RedisMapTest {
     }
 
     @Test
-    public void containsValue(){
+    public void containsValue() {
         Map<String, String> map = new RedisMap(HOST, PORT, "test", 0);
 
         map.put("save", "data");
         map.put("save2", "data2");
         Assert.assertTrue(map.containsValue("data2"));
+        Assert.assertFalse(map.containsValue("nodata"));
     }
 
     @Test
-    public void createNewHash(){
+    public void createNewHash() {
         Map<String, String> map1 = new RedisMap(HOST, PORT);
         Map<String, String> map2 = new RedisMap(HOST, PORT);
 
@@ -147,7 +148,7 @@ public class RedisMapTest {
     }
 
     @Test
-    public void sameHashesInDifferentDb(){
+    public void sameHashesInDifferentDb() {
         Map<String, String> map1 = new RedisMap(HOST, PORT, "one", 0);
         Map<String, String> map2 = new RedisMap(HOST, PORT, "one", 1);
 
@@ -198,21 +199,21 @@ public class RedisMapTest {
         Assert.assertFalse(map2.isEmpty());
     }
 
-   @Test
-   public void keySetIterator() {
-       Map<String, String> map = new RedisMap(HOST, PORT);
-       Map<String, String> hashMap = prepareHashMap();
-       map.putAll(hashMap);
+    @Test
+    public void keySetIterator() {
+        Map<String, String> map = new RedisMap(HOST, PORT);
+        Map<String, String> hashMap = prepareHashMap();
+        map.putAll(hashMap);
 
-       Set<String> set = map.keySet();
-       Assert.assertEquals(hashMap.size(), set.size());
-       Assert.assertArrayEquals(hashMap.keySet().toArray(), set.toArray());
+        Set<String> set = map.keySet();
+        Assert.assertEquals(hashMap.size(), set.size());
+        Assert.assertArrayEquals(hashMap.keySet().toArray(), set.toArray());
 
-       String el = hashMap.keySet().iterator().next();
-       Assert.assertTrue(set.contains(el));
-       set.remove(el);
-       Assert.assertEquals(hashMap.size() - 1, set.size());
-   }
+        String el = hashMap.keySet().iterator().next();
+        Assert.assertTrue(set.contains(el));
+        set.remove(el);
+        Assert.assertEquals(hashMap.size() - 1, set.size());
+    }
 
     @Test
     public void valuesIterator() {
@@ -275,8 +276,9 @@ public class RedisMapTest {
 
     }
 
+
     @Test
-    public void cleanAfterGC(){
+    public void cleanAfterGC() {
         Map<String, String> map = new RedisMap(HOST, PORT, "GC");
         map.put("test1", "value1");
         map = null;
