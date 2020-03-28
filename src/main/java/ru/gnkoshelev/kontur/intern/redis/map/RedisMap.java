@@ -4,7 +4,6 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.ScanParams;
 import redis.clients.jedis.ScanResult;
 
-import java.io.InvalidClassException;
 import java.lang.ref.Cleaner;
 import java.util.*;
 
