@@ -4,14 +4,34 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.ScanParams;
 import redis.clients.jedis.ScanResult;
 
+import java.lang.ref.Cleaner;
 import java.util.*;
 
-public class RedisMap implements Map<String, String> {
+public class RedisMap implements Map<String, String>, AutoCloseable {
     private Jedis jedis;
     private String hash;
     transient Set<String> keySet;
     transient Collection<String> values;
     transient Set<Entry<String, String>> entrySet;
+
+    private static class State implements Runnable {
+        private Jedis jedis;
+        private String hash;
+
+        State(Jedis jedis, String hash) {
+            this.jedis = jedis;
+            this.hash = hash;
+        }
+
+        public void run() {
+            jedis.del(hash);
+            jedis.close();
+        }
+    }
+
+    private final State state;
+    private static final Cleaner cleaner = Cleaner.create();
+    private final Cleaner.Cleanable cleanable;
 
     public RedisMap() {
         this("localhost", 6379, 0);
@@ -28,6 +48,8 @@ public class RedisMap implements Map<String, String> {
         do
             hash = String.valueOf(rand.nextInt(10000));
         while (jedis.exists(hash));
+        state = new State(jedis, hash);
+        this.cleanable = cleaner.register(this, state);
     }
 
     public RedisMap(String host, int port, String hash) {
@@ -38,6 +60,8 @@ public class RedisMap implements Map<String, String> {
         jedis = new Jedis(host, port);
         jedis.select(db);
         this.hash = hash;
+        state = new State(jedis, hash);
+        this.cleanable = cleaner.register(this, state);
 
     }
 
@@ -106,6 +130,11 @@ public class RedisMap implements Map<String, String> {
             keySet = ks;
         }
         return ks;
+    }
+
+    @Override
+    public void close() throws Exception {
+        cleanable.clean();
     }
 
     final class KeySet extends AbstractSet<String> {
