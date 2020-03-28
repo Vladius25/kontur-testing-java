@@ -10,9 +10,9 @@ import java.util.*;
 public class RedisMap implements Map<String, String>, AutoCloseable {
     private Jedis jedis;
     private String hash;
-    transient Set<String> keySet;
-    transient Collection<String> values;
-    transient Set<Entry<String, String>> entrySet;
+    private transient Set<String> keySet;
+    private transient Collection<String> values;
+    private transient Set<Entry<String, String>> entrySet;
 
     private static class State implements Runnable {
         private Jedis jedis;
@@ -82,8 +82,8 @@ public class RedisMap implements Map<String, String>, AutoCloseable {
 
     @Override
     public boolean containsValue(Object value) {
-        for(String val : values())
-            if(val.equals(value))
+        for (String val : values())
+            if (val.equals(value))
                 return true;
         return false;
     }
@@ -124,12 +124,8 @@ public class RedisMap implements Map<String, String>, AutoCloseable {
 
     @Override
     public Set<String> keySet() {
-        Set<String> ks = keySet;
-        if (ks == null) {
-            ks = new KeySet();
-            keySet = ks;
-        }
-        return ks;
+        Set<String> ks;
+        return (ks = keySet) == null ? (keySet = new KeySet()) : ks;
     }
 
     @Override
@@ -161,12 +157,8 @@ public class RedisMap implements Map<String, String>, AutoCloseable {
 
     @Override
     public Collection<String> values() {
-        Collection<String> vs = values;
-        if (vs == null) {
-            vs = new Values();
-            values = vs;
-        }
-        return vs;
+        Collection<String> vs;
+        return (vs = values) == null ? (values = new Values()) : vs;
     }
 
     final class Values extends AbstractCollection<String> {
@@ -225,7 +217,6 @@ public class RedisMap implements Map<String, String>, AutoCloseable {
     }
 
     abstract class RedisIterator<T> implements Iterator<T> {
-        private boolean start = true;
         private String nextCursor = "0";
         private Iterator<Entry<String, String>> resultIterator;
 
@@ -238,7 +229,7 @@ public class RedisMap implements Map<String, String>, AutoCloseable {
         public abstract T next();
 
         public Entry<String, String> getNext() {
-            if(resultIterator == null || !resultIterator.hasNext()) {
+            if (resultIterator == null || !resultIterator.hasNext()) {
                 ScanResult<Entry<String, String>> scanResult = jedis.hscan(hash, nextCursor, new ScanParams().count(100));
                 resultIterator = scanResult.getResult().iterator();
                 nextCursor = scanResult.getCursor();
