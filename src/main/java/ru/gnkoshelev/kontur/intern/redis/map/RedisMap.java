@@ -133,7 +133,7 @@ public class RedisMap implements Map<String, String>, AutoCloseable {
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         cleanable.clean();
     }
 
@@ -215,7 +215,7 @@ public class RedisMap implements Map<String, String>, AutoCloseable {
         }
 
         public final boolean remove(Object o) {
-            if (o instanceof Entry)
+            if (!(o instanceof Entry))
                 return false;
             Entry<?, ?> e = (Entry<?, ?>) o;
             Object key = e.getKey();

@@ -104,6 +104,18 @@ public class RedisMapTest {
     }
 
     @Test
+    public void useOneKeyValueFromDifferentApps(){
+        Map<String, String> map1 = new RedisMap(HOST, PORT, "brotherhood");
+        map1.put("test1", "value1");
+        map1.put("test2", "value2");
+        Map<String, String> map2 = new RedisMap(HOST, PORT, "brotherhood");
+
+        Assert.assertEquals(2, map2.size());
+        Assert.assertEquals("value1", map2.get("test1"));
+        Assert.assertEquals("value2", map2.get("test2"));
+    }
+
+    @Test
     public void containsValue(){
         Map<String, String> map = new RedisMap(HOST, PORT, "test", 0);
 
@@ -195,6 +207,11 @@ public class RedisMapTest {
        Set<String> set = map.keySet();
        Assert.assertEquals(hashMap.size(), set.size());
        Assert.assertArrayEquals(hashMap.keySet().toArray(), set.toArray());
+
+       String el = hashMap.keySet().iterator().next();
+       Assert.assertTrue(set.contains(el));
+       set.remove(el);
+       Assert.assertEquals(hashMap.size() - 1, set.size());
    }
 
     @Test
@@ -206,6 +223,9 @@ public class RedisMapTest {
         Collection<String> set = map.values();
         Assert.assertEquals(hashMap.size(), set.size());
         Assert.assertArrayEquals(hashMap.values().toArray(), set.toArray());
+
+        String el = hashMap.values().iterator().next();
+        Assert.assertTrue(set.contains(el));
     }
 
     @Test
@@ -217,6 +237,11 @@ public class RedisMapTest {
         Set<Entry<String, String>> set = map.entrySet();
         Assert.assertEquals(hashMap.size(), set.size());
         Assert.assertArrayEquals(hashMap.entrySet().toArray(), set.toArray());
+
+        Entry<String, String> el = hashMap.entrySet().iterator().next();
+        Assert.assertTrue(set.contains(el));
+        set.remove(el);
+        Assert.assertEquals(hashMap.size() - 1, set.size());
     }
 
     @Test
