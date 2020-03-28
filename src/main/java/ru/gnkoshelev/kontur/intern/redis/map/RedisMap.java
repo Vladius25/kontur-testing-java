@@ -108,9 +108,8 @@ public class RedisMap implements Map<String, String>, AutoCloseable {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public void putAll(Map<? extends String, ? extends String> m) {
-        jedis.hmset(hash, (Map<String, String>) m);
+        jedis.hmset(hash, new HashMap<>(m));
     }
 
     @Override
