@@ -4,6 +4,7 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.ScanParams;
 import redis.clients.jedis.ScanResult;
 
+import java.io.InvalidClassException;
 import java.lang.ref.Cleaner;
 import java.util.*;
 
@@ -108,12 +109,9 @@ public class RedisMap implements Map<String, String>, AutoCloseable {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void putAll(Map<? extends String, ? extends String> m) {
-        for (Entry<? extends String, ? extends String> e : m.entrySet()) {
-            String key = e.getKey();
-            String value = e.getValue();
-            put(key, value);
-        }
+        jedis.hmset(hash, (Map<String, String>) m);
     }
 
     @Override
