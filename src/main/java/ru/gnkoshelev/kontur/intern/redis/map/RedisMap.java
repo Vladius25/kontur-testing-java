@@ -37,6 +37,10 @@ public class RedisMap implements Map<String, String>, AutoCloseable {
         this("localhost", 6379, 0);
     }
 
+    public RedisMap(String hash) {
+        this("localhost", 6379, hash,0);
+    }
+
     public RedisMap(String host, int port) {
         this(host, port, 0);
     }
