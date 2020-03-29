@@ -1,8 +1,8 @@
 package ru.gnkoshelev.kontur.intern.redis.map;
 
 
-import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import redis.clients.jedis.Jedis;
 
@@ -61,12 +61,12 @@ public class RedisMapTest {
 
     public <T> boolean equalsIgnoreOrder(Collection<T> first, Collection<T> second) {
         for (T e : first)
-            if(!second.contains(e))
+            if (!second.contains(e))
                 return false;
         return true;
     }
 
-    @After
+    @Before
     public void clearRedis() {
         Jedis jedis = new Jedis(HOST, PORT);
         jedis.flushAll();
@@ -74,7 +74,6 @@ public class RedisMapTest {
 
     @Test
     public void initDifferentConstructors() {
-        clearRedis();
         RedisMap map = new RedisMap(HOST, PORT);
         RedisMap map1 = new RedisMap(HOST, PORT, "test");
         RedisMap map2 = new RedisMap(HOST, PORT, 0);
@@ -85,6 +84,27 @@ public class RedisMapTest {
         Assert.assertTrue(map2.isEmpty());
         Assert.assertTrue(map3.isEmpty());
 
+    }
+
+
+    @Test
+    public void constructorGenDifferentHashes() {
+        RedisMap map1 = new RedisMap(HOST, PORT);
+        RedisMap map2 = new RedisMap(HOST, PORT);
+
+        Assert.assertNotEquals(map1.getHash(), map2.getHash());
+    }
+
+    @Test
+    public void createLotsDifferentInstances() {
+        String hash = "-1";
+        for(int i = 0; i < 100; i++) {
+            RedisMap map = new RedisMap(HOST, PORT);
+            Assert.assertNotEquals(hash, map.getHash());
+            Assert.assertFalse(map.containsKey(hash));
+            hash = map.getHash();
+            map.put(hash, hash);
+        }
     }
 
     @Test
