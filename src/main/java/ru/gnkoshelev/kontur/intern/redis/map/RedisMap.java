@@ -11,6 +11,7 @@ import java.util.function.Function;
 public class RedisMap implements Map<String, String>, AutoCloseable {
     private final Jedis jedis;
     private final String hash;
+    private final String inUseKey = "___inUse___";
     private transient Set<String> keySet;
     private transient Collection<String> values;
     private transient Set<Entry<String, String>> entrySet;
@@ -18,20 +19,23 @@ public class RedisMap implements Map<String, String>, AutoCloseable {
     private static class State implements Runnable {
         private Jedis jedis;
         private String hash;
+        private String inUseKey;
 
-        State(Jedis jedis, String hash) {
+        State(Jedis jedis, String hash, String inUseKey) {
             this.jedis = jedis;
             this.hash = hash;
+            this.inUseKey = inUseKey;
         }
 
         public void run() {
-            if (!hasActiveConnections())
+            if (!isHashInUsed())
                 jedis.del(hash);
+            jedis.hdel(hash, inUseKey);
             jedis.close();
         }
 
-        private boolean hasActiveConnections() {
-            return jedis.clientList().split("db=" + jedis.getDB(), -1).length - 1 < 2;
+        private boolean isHashInUsed() {
+            return Long.parseLong(jedis.hget(hash, inUseKey)) > 1;
         }
     }
 
@@ -72,7 +76,8 @@ public class RedisMap implements Map<String, String>, AutoCloseable {
         jedis = new Jedis(host, port);
         jedis.select(db);
         hash = hashFunc.apply(jedis);
-        State state = new State(jedis, hash);
+        jedis.hincrBy(hash, inUseKey, 1);
+        State state = new State(jedis, hash, inUseKey);
         cleanable = cleaner.register(this, state);
         Runtime.getRuntime().addShutdownHook(new Thread(cleanable::clean));
     }
@@ -91,7 +96,7 @@ public class RedisMap implements Map<String, String>, AutoCloseable {
 
     @Override
     public int size() {
-        return jedis.hlen(hash).intValue();
+        return Math.max(jedis.hlen(hash).intValue() - 1, 0);
     }
 
     @Override
