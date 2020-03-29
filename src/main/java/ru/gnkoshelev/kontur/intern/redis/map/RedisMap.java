@@ -288,7 +288,6 @@ public class RedisMap implements Map<String, String>, AutoCloseable {
     }
 
     final class EntryIterator extends RedisIterator<Entry<String, String>> {
-
         @Override
         public Entry<String, String> next() {
             return getNext();
