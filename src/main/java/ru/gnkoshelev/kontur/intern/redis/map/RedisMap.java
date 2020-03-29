@@ -70,7 +70,7 @@ public class RedisMap implements Map<String, String>, AutoCloseable {
         hash = hashFunc.apply(jedis);
         State state = new State(jedis, hash);
         cleanable = cleaner.register(this, state);
-        Runtime.getRuntime().addShutdownHook(new Thread(this::clear));
+        Runtime.getRuntime().addShutdownHook(new Thread(cleanable::clean));
     }
 
     @Override
