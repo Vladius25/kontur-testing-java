@@ -35,7 +35,13 @@ public class RedisMap implements Map<String, String>, AutoCloseable {
         }
 
         private boolean isHashInUsed() {
-            return Long.parseLong(jedis.hget(hash, inUseKey)) > 1;
+            String inUse = jedis.hget(hash, inUseKey);
+            try {
+                return inUse != null && Long.parseLong(inUse) > 1;
+            }
+            catch (NumberFormatException e) {
+                return false;
+            }
         }
     }
 
