@@ -318,7 +318,7 @@ public class RedisMapTest {
     }
 
     @Test
-    public void breakInUseCounter() throws InterruptedException {
+    public void breakInUseCounter() {
         RedisMap map1 = new RedisMap(HOST, PORT, "badInUse");
         map1.put("___inUse___", "NaN");
         map1.put("9", "aN");
@@ -331,20 +331,24 @@ public class RedisMapTest {
     }
 
     @Test
-    public void cleanAfterGC() throws InterruptedException {
+    public void cleanAfterGC() {
         Map<String, String> map = new RedisMap(HOST, PORT, "GC", 1);
         map.put("test1", "value1");
 
         map = null;
         System.gc();
-        Thread.sleep(30);
+        try {
+            Thread.sleep(30);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
         map = new RedisMap(HOST, PORT, "GC", 1);
         Assert.assertTrue(map.isEmpty());
     }
 
     @Test
-    public void notCleanAfterGCWhenInUsed() throws InterruptedException {
+    public void notCleanAfterGCWhenInUsed() {
         Map<String, String> map1 = new RedisMap(HOST, PORT, "noGC", 2);
         Map<String, String> map2 = new RedisMap(HOST, PORT, "noGC", 2);
         Map<String, String> map3 = new RedisMap(HOST, PORT, "noGC", 2);
@@ -356,7 +360,11 @@ public class RedisMapTest {
         System.gc();
         map2 = null;
         System.gc();
-        Thread.sleep(30);
+        try {
+            Thread.sleep(30);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
         map1 = new RedisMap(HOST, PORT, "noGC", 2);
         Assert.assertFalse(map1.isEmpty());
