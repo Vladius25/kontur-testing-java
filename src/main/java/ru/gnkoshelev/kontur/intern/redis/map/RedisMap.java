@@ -284,4 +284,8 @@ public class RedisMap implements Map<String, String>, AutoCloseable {
     public int getDB() {
         return jedis.getDB();
     }
+
+    public String getHash() {
+        return hash;
+    }
 }
