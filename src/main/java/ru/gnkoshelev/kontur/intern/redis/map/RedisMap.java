@@ -25,8 +25,13 @@ public class RedisMap implements Map<String, String>, AutoCloseable {
         }
 
         public void run() {
-            jedis.del(hash);
+            if (!hasActiveConnections())
+                jedis.del(hash);
             jedis.close();
+        }
+
+        private boolean hasActiveConnections() {
+            return jedis.clientList().split("db=" + jedis.getDB(), -1).length - 1 < 2;
         }
     }
 

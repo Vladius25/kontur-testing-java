@@ -14,7 +14,7 @@ import java.util.Set;
 
 public class RedisMapTest {
 
-    final String HOST = "192.168.100.5";
+    final String HOST = "localhost";
     final int PORT = 6379;
 
     @Test
@@ -304,7 +304,7 @@ public class RedisMapTest {
 
     @Test
     public void cleanAfterGC() {
-        Map<String, String> map = new RedisMap(HOST, PORT, "GC");
+        Map<String, String> map = new RedisMap(HOST, PORT, "GC", 1);
         map.put("test1", "value1");
         map = null;
 
@@ -313,4 +313,16 @@ public class RedisMapTest {
         Assert.assertTrue(map.isEmpty());
     }
 
+    @Test
+    public void notCleanAfterGCWhenInUsed() {
+        Map<String, String> map1 = new RedisMap(HOST, PORT, "noGC", 2);
+        Map<String, String> map2 = new RedisMap(HOST, PORT, "noGC", 2);
+        map1.put("test1", "value1");
+        map2.put("test2", "value2");
+        map1 = null;
+
+        System.gc();
+        map1 = new RedisMap(HOST, PORT, "noGC", 2);
+        Assert.assertFalse(map1.isEmpty());
+    }
 }
