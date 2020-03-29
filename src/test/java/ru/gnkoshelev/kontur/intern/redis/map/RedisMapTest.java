@@ -123,7 +123,7 @@ public class RedisMapTest {
 
     @Test
     public void putKeyValue() {
-        Map<String, String> map = new RedisMap(HOST, PORT, "test", 0);
+        Map<String, String> map = new RedisMap(HOST, PORT, 0);
 
         map.put("save", "data");
         Assert.assertTrue(map.containsKey("save"));
@@ -145,7 +145,7 @@ public class RedisMapTest {
 
     @Test
     public void containsValue() {
-        Map<String, String> map = new RedisMap(HOST, PORT, "test", 0);
+        Map<String, String> map = new RedisMap(HOST, PORT, 0);
 
         map.put("save", "data");
         map.put("save2", "data2");

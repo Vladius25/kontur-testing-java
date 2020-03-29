@@ -144,8 +144,7 @@ public class RedisMap implements Map<String, String>, AutoCloseable {
 
     @Override
     public Set<String> keySet() {
-        Set<String> ks;
-        return (ks = keySet) == null ? (keySet = new KeySet()) : ks;
+        return keySet == null ? (keySet = new KeySet()) : keySet;
     }
 
     @Override
@@ -177,8 +176,7 @@ public class RedisMap implements Map<String, String>, AutoCloseable {
 
     @Override
     public Collection<String> values() {
-        Collection<String> vs;
-        return (vs = values) == null ? (values = new Values()) : vs;
+        return values == null ? (values = new Values()) : values;
     }
 
     final class Values extends AbstractCollection<String> {
@@ -201,8 +199,7 @@ public class RedisMap implements Map<String, String>, AutoCloseable {
 
     @Override
     public Set<Entry<String, String>> entrySet() {
-        Set<Entry<String, String>> es;
-        return (es = entrySet) == null ? (entrySet = new EntrySet()) : es;
+        return entrySet == null ? (entrySet = new EntrySet()) : entrySet;
     }
 
     final class EntrySet extends AbstractSet<Entry<String, String>> {
@@ -219,19 +216,20 @@ public class RedisMap implements Map<String, String>, AutoCloseable {
         }
 
         public final boolean contains(Object o) {
-            if (!(o instanceof Entry))
-                return false;
-            Entry<?, ?> e = (Entry<?, ?>) o;
-            Object key = e.getKey();
+            Object key =  keyFromObject(o);
             return containsKey(key);
         }
 
         public final boolean remove(Object o) {
+            Object key =  keyFromObject(o);
+            return RedisMap.this.remove(key) != null;
+        }
+
+        private Object keyFromObject(Object o) {
             if (!(o instanceof Entry))
                 return false;
             Entry<?, ?> e = (Entry<?, ?>) o;
-            Object key = e.getKey();
-            return RedisMap.this.remove(key) != null;
+            return e.getKey();
         }
 
     }
