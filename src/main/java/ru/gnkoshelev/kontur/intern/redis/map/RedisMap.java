@@ -38,7 +38,7 @@ public class RedisMap implements Map<String, String>, AutoCloseable {
     }
 
     public RedisMap(String hash) {
-        this("localhost", 6379, hash,0);
+        this("localhost", 6379, hash, 0);
     }
 
     public RedisMap(String host, int port) {
@@ -50,7 +50,7 @@ public class RedisMap implements Map<String, String>, AutoCloseable {
             Random rand = new Random();
             String _hash;
             do
-                _hash = String.valueOf(rand.nextInt(10000));
+                _hash = getRandomString(9);
             while (jedis.exists(_hash));
             return _hash;
         }, db);
@@ -71,6 +71,18 @@ public class RedisMap implements Map<String, String>, AutoCloseable {
         State state = new State(jedis, hash);
         cleanable = cleaner.register(this, state);
         Runtime.getRuntime().addShutdownHook(new Thread(cleanable::clean));
+    }
+
+    private static String getRandomString(int n) {
+        String alphabet = "abcdefghijklmnopqrstuvxyz";
+
+        StringBuilder sb = new StringBuilder(n);
+        for (int i = 0; i < n; i++) {
+            int index = (int) (alphabet.length() * Math.random());
+            sb.append(alphabet.charAt(index));
+        }
+
+        return sb.toString();
     }
 
     @Override
