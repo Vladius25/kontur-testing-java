@@ -47,7 +47,6 @@ public class RedisMap implements Map<String, String>, AutoCloseable {
 
     public RedisMap(String host, int port, int db) {
         this(host, port, (jedis) -> {
-            Random rand = new Random();
             String _hash;
             do
                 _hash = getRandomString(9);
