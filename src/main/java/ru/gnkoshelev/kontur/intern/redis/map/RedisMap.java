@@ -11,7 +11,6 @@ import java.util.function.Function;
 public class RedisMap implements Map<String, String>, AutoCloseable {
     private final Jedis jedis;
     private final String hash;
-    private final String inUseKey = "___inUse___";
     private transient Set<String> keySet;
     private transient Collection<String> values;
     private transient Set<Entry<String, String>> entrySet;
@@ -82,6 +81,7 @@ public class RedisMap implements Map<String, String>, AutoCloseable {
         jedis = new Jedis(host, port);
         jedis.select(db);
         hash = hashFunc.apply(jedis);
+        String inUseKey = "___inUse___";
         jedis.hincrBy(hash, inUseKey, 1);
         State state = new State(jedis, hash, inUseKey);
         cleanable = cleaner.register(this, state);
