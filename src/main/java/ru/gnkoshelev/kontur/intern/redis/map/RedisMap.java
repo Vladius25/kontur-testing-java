@@ -6,10 +6,11 @@ import redis.clients.jedis.ScanResult;
 
 import java.lang.ref.Cleaner;
 import java.util.*;
+import java.util.function.Function;
 
 public class RedisMap implements Map<String, String>, AutoCloseable {
-    private Jedis jedis;
-    private String hash;
+    private final Jedis jedis;
+    private final String hash;
     private transient Set<String> keySet;
     private transient Collection<String> values;
     private transient Set<Entry<String, String>> entrySet;
@@ -42,14 +43,14 @@ public class RedisMap implements Map<String, String>, AutoCloseable {
     }
 
     public RedisMap(String host, int port, int db) {
-        Random rand = new Random();
-        jedis = new Jedis(host, port);
-        jedis.select(db);
-        do
-            hash = String.valueOf(rand.nextInt(10000));
-        while (jedis.exists(hash));
-        state = new State(jedis, hash);
-        this.cleanable = cleaner.register(this, state);
+        this(host, port, (jedis) -> {
+            Random rand = new Random();
+            String _hash;
+            do
+                _hash = String.valueOf(rand.nextInt(10000));
+            while (jedis.exists(_hash));
+            return _hash;
+        }, db);
     }
 
     public RedisMap(String host, int port, String hash) {
@@ -57,12 +58,15 @@ public class RedisMap implements Map<String, String>, AutoCloseable {
     }
 
     public RedisMap(String host, int port, String hash, int db) {
+        this(host, port, (jedis) -> hash, db);
+    }
+
+    private RedisMap(String host, int port, Function<Jedis, String> hashFunc, int db) {
         jedis = new Jedis(host, port);
         jedis.select(db);
-        this.hash = hash;
+        this.hash = hashFunc.apply(jedis);
         state = new State(jedis, hash);
         this.cleanable = cleaner.register(this, state);
-
     }
 
     @Override
