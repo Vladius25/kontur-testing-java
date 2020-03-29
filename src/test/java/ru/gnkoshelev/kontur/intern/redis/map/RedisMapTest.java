@@ -86,7 +86,6 @@ public class RedisMapTest {
 
     }
 
-
     @Test
     public void constructorGenDifferentHashes() {
         RedisMap map1 = new RedisMap(HOST, PORT);
@@ -98,7 +97,7 @@ public class RedisMapTest {
     @Test
     public void createLotsDifferentInstances() {
         String hash = "-1";
-        for(int i = 0; i < 100; i++) {
+        for (int i = 0; i < 100; i++) {
             RedisMap map = new RedisMap(HOST, PORT);
             Assert.assertNotEquals(hash, map.getHash());
             Assert.assertFalse(map.containsKey(hash));
@@ -178,8 +177,8 @@ public class RedisMapTest {
 
     @Test
     public void sameHashesInDifferentDb() {
-        Map<String, String> map1 = new RedisMap(HOST, PORT, "one", 0);
-        Map<String, String> map2 = new RedisMap(HOST, PORT, "one", 1);
+        Map<String, String> map1 = new RedisMap(HOST, PORT, "singleton", 0);
+        Map<String, String> map2 = new RedisMap(HOST, PORT, "singleton", 1);
 
         map1.put("test", "testing");
         map2.put("data", "testing");
@@ -301,9 +300,7 @@ public class RedisMapTest {
 
         Assert.assertEquals("breakValue", map.get("test4"));
         Assert.assertEquals("breakValue", values.iterator().next());
-
     }
-
 
     @Test
     public void cleanAfterGC() {
