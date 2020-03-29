@@ -30,7 +30,6 @@ public class RedisMap implements Map<String, String>, AutoCloseable {
         }
     }
 
-    private final State state;
     private static final Cleaner cleaner = Cleaner.create();
     private final Cleaner.Cleanable cleanable;
 
@@ -65,8 +64,9 @@ public class RedisMap implements Map<String, String>, AutoCloseable {
         jedis = new Jedis(host, port);
         jedis.select(db);
         this.hash = hashFunc.apply(jedis);
-        state = new State(jedis, hash);
+        State state = new State(jedis, hash);
         this.cleanable = cleaner.register(this, state);
+        Runtime.getRuntime().addShutdownHook(new Thread(cleanable::clean));
     }
 
     @Override
