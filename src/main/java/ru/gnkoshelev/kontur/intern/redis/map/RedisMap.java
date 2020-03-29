@@ -217,17 +217,17 @@ public class RedisMap implements Map<String, String>, AutoCloseable {
 
         public final boolean contains(Object o) {
             Object key =  keyFromObject(o);
-            return containsKey(key);
+            return key != null && containsKey(key);
         }
 
         public final boolean remove(Object o) {
             Object key =  keyFromObject(o);
-            return RedisMap.this.remove(key) != null;
+            return key != null && RedisMap.this.remove(key) != null;
         }
 
         private Object keyFromObject(Object o) {
             if (!(o instanceof Entry))
-                return false;
+                return null;
             Entry<?, ?> e = (Entry<?, ?>) o;
             return e.getKey();
         }

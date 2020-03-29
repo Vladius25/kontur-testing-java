@@ -270,6 +270,8 @@ public class RedisMapTest {
         Assert.assertTrue(set.contains(el));
         set.remove(el);
         Assert.assertEquals(hashMap.size() - 1, set.size());
+
+        Assert.assertFalse(set.contains(new Object()));
     }
 
     @Test
