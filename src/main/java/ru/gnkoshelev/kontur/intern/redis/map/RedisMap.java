@@ -63,10 +63,10 @@ public class RedisMap implements Map<String, String>, AutoCloseable {
     private RedisMap(String host, int port, Function<Jedis, String> hashFunc, int db) {
         jedis = new Jedis(host, port);
         jedis.select(db);
-        this.hash = hashFunc.apply(jedis);
+        hash = hashFunc.apply(jedis);
         State state = new State(jedis, hash);
-        this.cleanable = cleaner.register(this, state);
-        Runtime.getRuntime().addShutdownHook(new Thread(cleanable::clean));
+        cleanable = cleaner.register(this, state);
+        Runtime.getRuntime().addShutdownHook(new Thread(this::clear));
     }
 
     @Override
