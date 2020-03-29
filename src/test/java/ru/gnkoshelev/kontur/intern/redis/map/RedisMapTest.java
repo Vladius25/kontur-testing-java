@@ -6,6 +6,7 @@ import org.junit.Before;
 import org.junit.Test;
 import redis.clients.jedis.Jedis;
 
+import java.lang.ref.WeakReference;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -305,49 +306,60 @@ public class RedisMapTest {
     }
 
     @Test
-    public void cleanAfterGC() {
-        Map<String, String> map = new RedisMap(HOST, PORT, "GC", 1);
-        map.put("test1", "value1");
-        map = null;
-
-        System.gc();
-        map = new RedisMap(HOST, PORT, "GC");
-        Assert.assertTrue(map.isEmpty());
-    }
-
-    @Test
-    public void incrementInUseCounter() {
-        Map<String, String> map1 = new RedisMap(HOST, PORT, "inUse", 2);
+    public void changeInUseCounter() {
+        RedisMap map1 = new RedisMap(HOST, PORT, "inUse", 2);
         Assert.assertEquals("1", map1.get("___inUse___"));
 
-        Map<String, String> map2 = new RedisMap(HOST, PORT, "inUse", 2);
+        RedisMap map2 = new RedisMap(HOST, PORT, "inUse", 2);
         Assert.assertEquals("2", map2.get("___inUse___"));
+
+        map2.close();
+        Assert.assertEquals("1", map1.get("___inUse___"));
     }
 
     @Test
-    public void breakInUseCounter() {
-        Map<String, String> map = new RedisMap(HOST, PORT, "badInUse");
-        new RedisMap(HOST, PORT, "badInUse");
-        map.put("___inUse___", "NaN");
-        map.put("9", "aN");
+    public void breakInUseCounter() throws InterruptedException {
+        RedisMap map1 = new RedisMap(HOST, PORT, "badInUse");
+        map1.put("___inUse___", "NaN");
+        map1.put("9", "aN");
+        RedisMap map2 = new RedisMap(HOST, PORT, "badInUse");
+
+        map1.close();
+        map1 = new RedisMap(HOST, PORT, "badInUse");
+        Assert.assertTrue(map1.isEmpty());
+        Assert.assertTrue(map2.isEmpty());
+    }
+
+    @Test
+    public void cleanAfterGC() throws InterruptedException {
+        Map<String, String> map = new RedisMap(HOST, PORT, "GC", 1);
+        map.put("test1", "value1");
 
         map = null;
         System.gc();
-        map = new RedisMap(HOST, PORT, "badInUse");
+        Thread.sleep(30);
+
+        map = new RedisMap(HOST, PORT, "GC", 1);
         Assert.assertTrue(map.isEmpty());
     }
 
     @Test
-    public void notCleanAfterGCWhenInUsed() {
+    public void notCleanAfterGCWhenInUsed() throws InterruptedException {
         Map<String, String> map1 = new RedisMap(HOST, PORT, "noGC", 2);
         Map<String, String> map2 = new RedisMap(HOST, PORT, "noGC", 2);
+        Map<String, String> map3 = new RedisMap(HOST, PORT, "noGC", 2);
         map1.put("test1", "value1");
         map2.put("test2", "value2");
-        map1 = null;
+        map3.put("test3", "value3");
 
+        map1 = null;
         System.gc();
+        map2 = null;
+        System.gc();
+        Thread.sleep(30);
+
         map1 = new RedisMap(HOST, PORT, "noGC", 2);
         Assert.assertFalse(map1.isEmpty());
-        Assert.assertFalse(map2.isEmpty());
+        Assert.assertFalse(map3.isEmpty());
     }
 }

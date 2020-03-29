@@ -24,23 +24,31 @@ public class RedisMap implements Map<String, String>, AutoCloseable {
             this.jedis = jedis;
             this.hash = hash;
             this.inUseKey = inUseKey;
+            inUseIncr(1);
         }
 
         public void run() {
+            inUseIncr(-1);
             if (!isHashInUsed())
                 jedis.del(hash);
-            jedis.hdel(hash, inUseKey);
             jedis.close();
         }
 
         private boolean isHashInUsed() {
             String inUse = jedis.hget(hash, inUseKey);
             try {
-                return inUse != null && Long.parseLong(inUse) > 1;
+                return inUse != null && Long.parseLong(inUse) > 0;
             }
             catch (NumberFormatException e) {
                 return false;
             }
+        }
+
+        private void inUseIncr(long value){
+            try {
+                jedis.hincrBy(hash, inUseKey, value);
+            } catch (Exception ignored) {}
+
         }
     }
 
@@ -81,9 +89,7 @@ public class RedisMap implements Map<String, String>, AutoCloseable {
         jedis = new Jedis(host, port);
         jedis.select(db);
         hash = hashFunc.apply(jedis);
-        String inUseKey = "___inUse___";
-        jedis.hincrBy(hash, inUseKey, 1);
-        State state = new State(jedis, hash, inUseKey);
+        State state = new State(jedis, hash, "___inUse___");
         cleanable = cleaner.register(this, state);
         Runtime.getRuntime().addShutdownHook(new Thread(cleanable::clean));
     }
