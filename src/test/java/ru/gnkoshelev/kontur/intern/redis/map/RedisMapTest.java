@@ -316,6 +316,28 @@ public class RedisMapTest {
     }
 
     @Test
+    public void incrementInUseCounter() {
+        Map<String, String> map1 = new RedisMap(HOST, PORT, "inUse", 2);
+        Assert.assertEquals("1", map1.get("___inUse___"));
+
+        Map<String, String> map2 = new RedisMap(HOST, PORT, "inUse", 2);
+        Assert.assertEquals("2", map2.get("___inUse___"));
+    }
+
+    @Test
+    public void breakInUseCounter() {
+        Map<String, String> map = new RedisMap(HOST, PORT, "badInUse");
+        new RedisMap(HOST, PORT, "badInUse");
+        map.put("___inUse___", "NaN");
+        map.put("9", "aN");
+
+        map = null;
+        System.gc();
+        map = new RedisMap(HOST, PORT, "badInUse");
+        Assert.assertTrue(map.isEmpty());
+    }
+
+    @Test
     public void notCleanAfterGCWhenInUsed() {
         Map<String, String> map1 = new RedisMap(HOST, PORT, "noGC", 2);
         Map<String, String> map2 = new RedisMap(HOST, PORT, "noGC", 2);
@@ -326,5 +348,6 @@ public class RedisMapTest {
         System.gc();
         map1 = new RedisMap(HOST, PORT, "noGC", 2);
         Assert.assertFalse(map1.isEmpty());
+        Assert.assertFalse(map2.isEmpty());
     }
 }
